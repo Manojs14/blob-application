@@ -1,0 +1,54 @@
+package users;
+
+import java.io.InputStream;
+import java.time.LocalDateTime;
+
+public class Post {
+    private int postId;
+    private String title;
+    private String content;
+    private byte[] media;
+    private String mediaType;
+    private LocalDateTime createdAt;
+    private int userId;
+
+    // Constructors, getters, and setters
+
+    public Post(int postId, String title, String content, byte[] media, String mediaType, LocalDateTime createdAt, int userId) {
+        this.postId = postId;
+        this.title = title;
+        this.content = content;
+        this.media = media;
+        this.mediaType = mediaType;
+        this.createdAt = createdAt;
+        this.userId = userId;
+    }
+
+    // Getters and setters for other properties
+
+    public byte[] getMedia() {
+        return media;
+    }
+
+    public void setMedia(byte[] media) {
+        this.media = media;
+    }
+
+    public String getMediaType() {
+        return mediaType;
+    }
+
+    public void setMediaType(String mediaType) {
+        this.mediaType = mediaType;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    // Other getters and setters as needed
+}

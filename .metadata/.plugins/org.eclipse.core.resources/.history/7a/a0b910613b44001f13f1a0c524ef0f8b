@@ -1,0 +1,19 @@
+package users;
+
+import javax.servlet.annotation.WebServlet;
+
+@WebServlet("/showMedia")
+public class showMediaServlet {
+	  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	        // Retrieve media content based on 'id' parameter from database
+	        int postId = Integer.parseInt(request.getParameter("id"));
+	        byte[] mediaBytes = // Retrieve media bytes from database based on postId
+
+	        // Set response content type based on media type (image or video)
+	        String contentType = // Retrieve media type (image/jpeg, video/mp4, etc.) based on postId
+	        response.setContentType(contentType);
+
+	        // Write media bytes to response output stream
+	        response.getOutputStream().write(mediaBytes);
+	    }
+}

@@ -1,0 +1,12 @@
+package users;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/showMedia")
+public class showMediaServlet {
+	  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	   
+	    }
+}

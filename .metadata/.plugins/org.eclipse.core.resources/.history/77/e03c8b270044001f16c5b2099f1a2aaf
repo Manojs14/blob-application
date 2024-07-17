@@ -1,0 +1,77 @@
+package users;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class Login
+ */
+@WebServlet("/Login")
+public class Login extends HttpServlet {
+	Connection con;
+	  PreparedStatement pstmt;
+	  ResultSet rs;
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String name=request.getParameter("name");
+		String email=request.getParameter("email");
+		String pass=request.getParameter("password");
+		System.out.println(name+" "+email+" "+pass);
+		
+		
+		try {
+        	
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			System.out.println("loaded");
+			con=DriverManager.getConnection("jdbc:mysql://localhost:3306/sun_base" ,"root","Manu2341");
+			System.out.println("conected");
+			//check if username, password, email matches
+			pstmt=con.prepareStatement("SELECT * FROM users WHERE email = ? AND password = ? AND name = ?");
+			pstmt.setString(1, email);
+			pstmt.setString(2, pass);
+			pstmt.setString(3, name);
+			rs=pstmt.executeQuery();
+			System.out.println(rs);
+			if(rs.next()) {
+				request.getRequestDispatcher("index.jsp").forward(request,response);
+				return;
+				}
+			
+			
+			//Enter details to data base
+			pstmt=con.prepareStatement("insert into users(`name`,`password`,`email`,`role`)Values(?,?,?,?)");
+			pstmt.setString(1, name);
+			pstmt.setString(2, pass);
+			pstmt.setString(3, email);
+			pstmt.setString(4, role);
+			int count=pstmt.executeUpdate();
+			System.out.println(count);
+			if(count>0) {
+			request.getRequestDispatcher("login.jsp").forward(request,response);
+			}
+			else {
+			request.getRequestDispatcher("index.jsp").forward(request, response);
+			}
+		} catch (SQLException |ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+    finally {
+    	try {
+			pstmt.close();
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+    }
+	}
+
+}

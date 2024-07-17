@@ -1,0 +1,91 @@
+package users;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
+
+@WebServlet("/createPostServlet")
+@MultipartConfig
+public class createPostServlet extends HttpServlet {
+    private static final String INSERT_POST_SQL = "INSERT INTO posts (title, content, media_url, media_type, created_at) VALUES (?, ?, ?, ?, NOW())";
+    private static final String UPLOAD_DIRECTORY = ; // Adjust path as needed
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession();
+        if (session.getAttribute("userid") == null || session.getAttribute("role").equals("2")) {
+            response.setContentType("text/html");
+            PrintWriter writer = response.getWriter();
+            writer.println("Unauthorized access. Please login as Admin.");
+            return;
+        }
+
+        String title = request.getParameter("title");
+        String content = request.getParameter("content");
+
+        Part mediaPart = request.getPart("image"); // Now named "media" for both images and videos
+
+        String mediaFileName = null;
+        String mediaUrl = null;
+        String mediaType = null;
+
+        if (mediaPart != null && mediaPart.getSize() > 0) {
+            mediaFileName = Paths.get(mediaPart.getSubmittedFileName()).getFileName().toString();
+            mediaUrl = UPLOAD_DIRECTORY + File.separator + mediaFileName;
+            File uploadDir = new File(UPLOAD_DIRECTORY);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            // Check media type using getContentType()
+            String contentType = mediaPart.getContentType();
+            if (contentType.startsWith("image/")) {
+                mediaType = "image";
+            } else if (contentType.startsWith("video/")) {
+                mediaType = "video";
+            } else {
+                response.setContentType("text/html");
+                PrintWriter writer = response.getWriter();
+                writer.println("Unsupported media type. Please upload an image or video.");
+                return;
+            }
+
+            try (InputStream inputStream = mediaPart.getInputStream()) {
+                Files.copy(inputStream, Paths.get(mediaUrl));
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setContentType("text/html");
+                PrintWriter writer = response.getWriter();
+                writer.println("Error uploading media: " + e.getMessage());
+                return;
+            }
+        }
+
+        Connection connection = DatabaseUtil.getConnection();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(INSERT_POST_SQL)) {
+            preparedStatement.setString(1, title);
+            preparedStatement.setString(2, content);
+            preparedStatement.setString(3, mediaUrl);  // Store media URL (path)
+            preparedStatement.setString(4, mediaType);   // Store media type (image/video)
+            preparedStatement.executeUpdate();
+
+            response.setContentType("text/html");
+            PrintWriter writer = response.getWriter();
+            writer.println("Post created successfully!");
+        } catch (SQLException e) {
+            e.printStackTrace();

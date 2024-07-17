@@ -1,0 +1,40 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.example.model.Post" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Post List</title>
+</head>
+<body>
+    <h1>Post List</h1>
+    <% 
+    Object postsObj = request.getAttribute("posts");
+    if (postsObj instanceof List) {
+        List<Post> posts = (List<Post>) postsObj;
+        if (!posts.isEmpty()) {
+            for (Post post : posts) {
+    %>
+                <div>
+                    <h2><%= post.getTitle() %></h2>
+                    <p><%= post.getContent() %></p>
+                    <% if (post.getMediaType().startsWith("image/")) { %>
+                        <img src="media?id=<%= post.getId() %>" alt="Image">
+                    <% } else if (post.getMediaType().startsWith("video/")) { %>
+                        <video controls>
+                            <source src="media?id=<%= post.getId() %>" type="<%= post.getMediaType() %>">
+                        </video>
+                    <% } else { %>
+                        <p>Unsupported media type</p>
+                    <% } %>
+                </div>
+    <%      }
+        } else { %>
+            <p>No posts available.</p>
+    <% }
+    } else {
+        // Handle the case where 'postsObj' is not a List<Post>
+    }
+    %>
+</body>
+</html>

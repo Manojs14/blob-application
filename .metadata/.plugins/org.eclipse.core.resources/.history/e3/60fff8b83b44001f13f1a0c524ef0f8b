@@ -1,0 +1,100 @@
+package users;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/showMedia")
+public class showMediaServlet {
+	  protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		  private static final String DB_URL = "jdbc:mysql://localhost:3306/sun_base";
+		    private static final String DB_USER = "root";
+		    private static final String DB_PASSWORD = "Manu2341";
+
+		    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+		            throws ServletException, IOException {
+		        // Retrieve 'id' parameter from request
+		        int postId = Integer.parseInt(request.getParameter("id"));
+
+		        Connection con = null;
+		        PreparedStatement statement = null;
+		        ResultSet resultSet = null;
+		        InputStream inputStream = null;
+
+		        try {
+		            // Establish database connection
+		            Class.forName("com.mysql.cj.jdbc.Driver");
+		            con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+		            // SQL query to retrieve media bytes and content type based on postId
+		            String sql = "SELECT media, media_type FROM posts WHERE id = ?";
+		            statement = con.prepareStatement(sql);
+		            statement.setInt(1, postId);
+		            resultSet = statement.executeQuery();
+
+		            if (resultSet.next()) {
+		                // Retrieve media bytes and content type from database
+		                inputStream = resultSet.getBinaryStream("media");
+		                String contentType = resultSet.getString("media_type");
+
+		                // Set response content type
+		                response.setContentType(contentType);
+
+		                // Write media bytes to response output stream
+		                if (inputStream != null) {
+		                    byte[] buffer = new byte[4096];
+		                    int bytesRead = -1;
+		                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+		                        response.getOutputStream().write(buffer, 0, bytesRead);
+		                    }
+		                }
+		            } else {
+		                // Handle case where postId does not exist in database
+		                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+		            }
+		        } catch (ClassNotFoundException | SQLException e) {
+		            e.printStackTrace();
+		            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		        } finally {
+		            // Close all resources
+		            if (inputStream != null) {
+		                try {
+		                    inputStream.close();
+		                } catch (IOException e) {
+		                    e.printStackTrace();
+		                }
+		            }
+		            if (resultSet != null) {
+		                try {
+		                    resultSet.close();
+		                } catch (SQLException e) {
+		                    e.printStackTrace();
+		                }
+		            }
+		            if (statement != null) {
+		                try {
+		                    statement.close();
+		                } catch (SQLException e) {
+		                    e.printStackTrace();
+		                }
+		            }
+		            if (con != null) {
+		                try {
+		                    con.close();
+		                } catch (SQLException e) {
+		                    e.printStackTrace();
+		                }
+		            }
+		        }
+	    }
+}

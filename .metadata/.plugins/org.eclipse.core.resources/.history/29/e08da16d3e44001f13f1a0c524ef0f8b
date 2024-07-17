@@ -1,0 +1,66 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.io.ByteArrayOutputStream" %>
+<%@ page import="java.io.InputStream" %>
+<%@ page import="java.util.Base64" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="users.posts" %>
+
+<html>
+<head>
+    <title>Display Posts</title>
+</head>
+<body>
+    <h1>Posts</h1>
+    
+    <% if (posts != null && !posts.isEmpty()) { %>
+        <% for (users.Post post : posts) { %>
+            <div>
+                <h3><%= post.getTitle() %></h3>
+                <p><%= post.getContent() %></p>
+                <p>Created at: <%= post.getCreatedAt() %></p>
+                
+                <%-- Display media if available --%>
+                <% InputStream mediaStream = post.getMedia(); %>
+                <% if (mediaStream != null) { %>
+                    <%-- Convert media InputStream to base64 --%>
+                    <% ByteArrayOutputStream outputStream = new ByteArrayOutputStream(); %>
+                    <% byte[] buffer = new byte[4096]; %>
+                    <% int bytesRead; %>
+                    <% while ((bytesRead = mediaStream.read(buffer)) != -1) { %>
+                        <% outputStream.write(buffer, 0, bytesRead); %>
+                    <% } %>
+                    
+                    <% byte[] mediaBytes = outputStream.toByteArray(); %>
+                    <% String mediaBase64 = Base64.getEncoder().encodeToString(mediaBytes); %>
+                    
+                    <%-- Determine media type --%>
+                    <% String mediaType = post.getMediaType(); %>
+                    
+                    <%-- Display media based on type --%>
+                    <% if (mediaType.startsWith("image/")) { %>
+                        <%-- Display image --%>
+                        <img src="data:<%= mediaType %>;base64,<%= mediaBase64 %>" alt="Image" style="max-width: 100%;" />
+                    <% } else if (mediaType.startsWith("video/")) { %>
+                        <%-- Display video --%>
+                        <video controls style="max-width: 100%;">
+                            <source src="data:<%= mediaType %>;base64,<%= mediaBase64 %>" type="<%= mediaType %>">
+                            Your browser does not support the video tag.
+                        </video>
+                    <% } else { %>
+                        <%-- Unsupported media type --%>
+                        <p>Unsupported media type: <%= mediaType %></p>
+                    <% } %>
+                <% } else { %>
+                    <%-- No media available --%>
+                    <p>No media available for this post.</p>
+                <% } %>
+                
+                <hr/>
+            </div>
+        <% } %>
+    <% } else { %>
+        <p>No posts found.</p>
+    <% } %>
+
+</body>
+</html>

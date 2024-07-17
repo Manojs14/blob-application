@@ -1,0 +1,33 @@
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+<%@ page import="users.Post" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Post List</title>
+</head>
+<body>
+    <h1>Post List</h1>
+    <% List<Post> posts = (List<Post>) request.getAttribute("posts"); %>
+    <% if (posts != null && !posts.isEmpty()) { %>
+        <% for (Post post : posts) { %>
+            <div>
+                <h2><%= post.getTitle() %></h2>
+                <p><%= post.getContent() %></p>
+                <% if (post.getMediaType().startsWith("image/")) { %>
+                    <img src="media?id=<%= post.getId() %>" alt="Image">
+                <% } else if (post.getMediaType().startsWith("video/")) { %>
+                    <video controls>
+                        <source src="media?id=<%= post.getId() %>" type="<%= post.getMediaType() %>">
+                    </video>
+                <% } else { %>
+                    <p>Unsupported media type</p>
+                <% } %>
+            </div>
+        <% } %>
+    <% } else { %>
+        <p>No posts available.</p>
+    <% } %>
+</body>
+</html>
